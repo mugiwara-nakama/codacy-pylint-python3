@@ -64,13 +64,13 @@ def readConfiguration(configFile, srcDir):
 
     try:
         configuration = readJsonFile(configFile)
-        files = [f for f in configuration['files'] if isPython3(f)] if 'files' in configuration else allFiles()
+        files = [f for f in configuration['files']] if 'files' in configuration else allFiles()
         pylint = [t for t in configuration['tools'] if t['name'] == '''PyLint (Python 3)'''][0] or []
         rules = ['--disable=all','--enable=' + ','.join([p['patternId'] for p in pylint['patterns']])] if 'patterns' in pylint else []
     except:
         rules = []
         files = allFiles()
-    return rules, files
+    return rules, [f for f in files if isPython3(f)]
 
 def chunks(lst,n):
     return [lst[i:i + n] for i in range(0, len(lst), n)]
