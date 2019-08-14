@@ -52,7 +52,7 @@ class PyLintTest(unittest.TestCase):
         res = runPylint([],['--version']).split(os.linesep)
         
         self.assertEqual(res[0][len('__main__.py '):], "2.3.1")
-        self.assertEqual(res[2][len('Python '):12], "3.6.8")
+        self.assertEqual(res[2][len('Python '):12], "3.7.4")
 
     def test_chunks(self):
         l = ["file1", "file2"]
