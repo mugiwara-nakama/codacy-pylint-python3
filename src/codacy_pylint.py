@@ -2,13 +2,12 @@ import os
 import sys
 import json
 import jsonpickle
-from io import StringIO
 from subprocess import Popen, PIPE
 import ast
 from itertools import takewhile, dropwhile
 import glob
-import time
-import traceback
+from multiprocessing import cpu_count
+import re
 
 class Result:
     def __init__(self, filename, message, patternId, line):
@@ -16,20 +15,27 @@ class Result:
         self.message = message
         self.patternId = patternId
         self.line = line
+    def __str__(self):
+        return f'Result({self.filename},{self.message},{self.patternId},{self.line})'
+    def __repr__(self):
+        return self.__str__()
+    def __eq__(self, o):
+        return self.filename == o.filename and self.message == o.message and self.patternId == o.patternId and self.line == o.line
 
 def toJson(obj): return jsonpickle.encode(obj, unpicklable=False)
+
 def readJsonFile(path):
     with open(path, 'r') as file:
         res = json.loads(file.read())
     return res
 
-def runPylint(options):
+def runPylint(options, files):
     process = Popen(
-        ["pylint"] + options,
+        ['python3', '-m','pylint'] + options + files,
         stdout=PIPE
     )
     stdout = process.communicate()[0]
-    return stdout.decode("utf-8")
+    return stdout.decode('utf-8')
 
 def isPython3(f):
     try:
@@ -49,19 +55,27 @@ def isPython3(f):
         # something inherently wrong with the file.
         return True
 
+def parseMessage(message):
+    return re.search('''\[(.+)\(.+\] (.+)''', message).groups()
+
 def parseResult(res):
     lines = res.split(os.linesep)
-    splits = [arr for arr in [[split.strip() for split in l.split(':')] for l in lines] if len(arr) == 5] 
-    results = [Result(filename=res[0],message=res[4],patternId=res[3],line=int(res[1], 10)) for res in splits]
-    return results
+    splits = [arr for arr in [[split.strip() for split in l.split(':')] for l in lines] if len(arr) == 3]
+    def createResults():
+        for res in splits:
+            (patternId, message) = parseMessage(res[2])
+            yield Result(filename=res[0],message=message,patternId=patternId,line=int(res[1], 10))
+    return list(createResults())
 
 def walkDirectory(directory):
-    for filename in glob.iglob(directory + '**/*.py', recursive=True):
-        yield filename
+    def generate():
+        for filename in glob.iglob(directory + '**/*.py', recursive=True):
+            res = filename[len(os.path.abspath(directory)) + 1:1]
+            yield res
+    return list(generate())
 
 def readConfiguration(configFile, srcDir):
-    def allFiles(): return list(walkDirectory(srcDir))
-
+    def allFiles(): return walkDirectory(srcDir)
     try:
         configuration = readJsonFile(configFile)
         files = [f for f in configuration['files']] if 'files' in configuration else allFiles()
@@ -77,22 +91,33 @@ def chunks(lst,n):
 
 def runPylintWith(rules, files):
     res = runPylint([
-        'format=parseable',
+        '--output-format=parseable',
         '--load-plugins=pylint_django',
         '--disable=django-installed-checker,django-model-checker',
-        '--load-plugins=pylint_flask'] +
-        rules +
+        '--load-plugins=pylint_flask',
+        '-j',
+        str(cpu_count())] +
+        rules,
         files)
     return parseResult(res)
 
+def runTool(configFile, srcDir):
+    (rules, files) = readConfiguration(configFile, srcDir)
+    res = []
+    filesWithPath = [f'{srcDir}/{f}' for f in files]
+    for chunk in chunks(filesWithPath, 10):
+        res.extend(runPylintWith(rules, chunk))
+    for result in res:
+        if result.filename.startswith(srcDir + '/'):
+            result.filename = result.filename[len(srcDir) + 1:]
+    return res
+
+def resultsToJson(results):
+    return os.linesep.join([toJson(res) for res in results])
+
 if __name__ == '__main__':
     try:
-        (rules, files) = readConfiguration('/.codacyrc', '/src')
-        for chunk in chunks(files, 10):
-            results = runPylintWith(rules, chunk)
-            output = os.linesep.join([toJson(res) for res in results])
-            print(output)
-            print()
+        results = runTool('/.codacyrc', '/src')
+        print(resultsToJson(results))
     except:
-        traceback.print_stack()
         sys.exit(1)
