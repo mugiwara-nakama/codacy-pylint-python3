@@ -149,5 +149,16 @@ function(1)
         for i in range(1, len(result)):
             self.assertEqual(result[i], expectedResult[i])
 
+    def test_timeout(self):
+        self.assertEqual(getTimeout(" 60    second"), 60)
+        self.assertEqual(getTimeout(" 60    seconds"), 60)
+        self.assertEqual(getTimeout("1 minute"), 60)
+        self.assertEqual(getTimeout(" 2 minutes"), 120)
+        self.assertEqual(getTimeout("blabla"), defaultTimeout)
+        self.assertEqual(getTimeout("blabla blabla"), defaultTimeout)
+        self.assertEqual(getTimeout("10 blabla"), defaultTimeout)
+        self.assertEqual(getTimeout("1 hour"), 60 * 60)
+        self.assertEqual(getTimeout("1 hours"), 60 * 60)    
+
 if __name__ == '__main__':
     unittest.main()
