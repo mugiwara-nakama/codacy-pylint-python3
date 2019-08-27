@@ -109,7 +109,6 @@ def readConfiguration(configFile, srcDir):
             rules = ['--disable=all', '--enable=' + ','.join([p['patternId'] for p in pylint.get('patterns') or []])]
         else:
             rules = []
-        rules = ['--disable=all','--enable=' + ','.join([p['patternId'] for p in pylint['patterns']])] if 'patterns' in pylint else []
     except:
         rules = []
         files = allFiles()
