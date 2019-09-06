@@ -80,11 +80,12 @@ def isPython3(f):
         return True
 
 def parseMessage(message):
-    return re.search(r'\[(.+)\(.+\] (.+)', message).groups()
+    res = re.search(r'\[(.+)\(.+\] (.+)', message)
+    return res.groups() if res else None
 
 def parseResult(res):
     lines = res.split(os.linesep)
-    splits = [arr for arr in [[split.strip() for split in l.split(':')] for l in lines] if len(arr) == 3]
+    splits = [arr for arr in [[split.strip() for split in l.split(':')] for l in lines] if len(arr) == 3 and parseMessage(arr[2])]
     def createResults():
         for res in splits:
             (patternId, message) = parseMessage(res[2])
@@ -147,5 +148,6 @@ if __name__ == '__main__':
         try:
             results = runTool('/.codacyrc', '/src')
             print(resultsToJson(results))
-        except:
+        except Exception:
+            traceback.print_exc()
             sys.exit(1)
