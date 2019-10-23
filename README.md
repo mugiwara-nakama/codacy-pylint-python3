@@ -23,13 +23,13 @@ The docker is ran with the following command:
 
 ## Generate Docs
 
-1. Update the version in `docs/patterns.json`
+ 1. Update the version in `docs/patterns.json`
 
-2. Run the DocGenerator:
+ 2. Run the DocGenerator:
 
-    ```bash
-    sbt "doc-generator/run"
-    ```
+```bash
+sbt "doc-generator/run"
+```
 
 ## Test
 

@@ -4,7 +4,6 @@ import json
 import jsonpickle
 from subprocess import Popen, PIPE
 import ast
-from itertools import takewhile
 import glob
 import re
 import signal
