@@ -72,11 +72,11 @@ class PyLintTest(unittest.TestCase):
             self.assertEqual(expectedRules, rules)
             self.assertEqual(expectedFiles, files)
 
-            def test_parse_message(self):
-                input = '''[C0103(invalid-name), ] Module name "W0124" doesn't conform to snake_case naming style'''
-                (rule, message) = parseMessage(input)
-                self.assertEqual(rule, 'C0103')
-                self.assertEqual(message, '''Module name "W0124" doesn't conform to snake_case naming style''')
+    def test_parse_message(self):
+        message_input = '''[C0103(invalid-name), ] Module name "W0124" doesn't conform to snake_case naming style'''
+        (rule, message) = parseMessage(message_input)
+        self.assertEqual(rule, 'C0103')
+        self.assertEqual(message, '''Module name "W0124" doesn't conform to snake_case naming style''')
 
     def test_E0711(self):
         config = '{"tools":[{"name":"PyLint (Python 3)","patterns":[{"patternId":"E0711"}]}],"files":["E0711.py"]}'
@@ -131,7 +131,7 @@ function(1)
         self.assertEqual(withConfigAndSources(config, sources), expected_result)
 
     def test_no_conf(self):
-        (config, sources) = python3_file()
+        (_, sources) = python3_file()
         result = withConfigAndSources(None, sources)
         self.assertTrue(len(result) > 0)
 
@@ -144,7 +144,7 @@ function(1)
         self.assertEqual(getTimeout("blabla blabla"), DEFAULT_TIMEOUT)
         self.assertEqual(getTimeout("10 blabla"), DEFAULT_TIMEOUT)
         self.assertEqual(getTimeout("1 hour"), 60 * 60)
-        self.assertEqual(getTimeout("1 hours"), 60 * 60)    
+        self.assertEqual(getTimeout("1 hours"), 60 * 60)
 
 if __name__ == '__main__':
     unittest.main()
