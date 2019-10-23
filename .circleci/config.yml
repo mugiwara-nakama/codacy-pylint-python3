@@ -4,17 +4,29 @@ orbs:
   codacy: codacy/base@1.0.0
   codacy_plugins_test: codacy/plugins-test@0.4.0
 
+jobs:
+  test_patterns:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/workdir
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          command: |
+            docker build -t $CIRCLE_PROJECT_REPONAME:latest .
+            docker run $CIRCLE_PROJECT_REPONAME:latest codacy_pylint_test.py
+            docker save --output ~/workdir/docker-image.tar $CIRCLE_PROJECT_REPONAME:latest
+      - persist_to_workspace:
+          paths:
+            - workdir/*
+          root: ~/
 workflows:
   version: 2
   compile_test_deploy:
     jobs:
       - codacy/checkout_and_version
-      - codacy/shell:
-          name: test_patterns
-          cmd: |
-            docker build -t $CIRCLE_PROJECT_REPONAME:latest .
-            docker run $CIRCLE_PROJECT_REPONAME:latest codacy_pylint_test.py
-            docker save --output ~/workdir/docker-image.tar $CIRCLE_PROJECT_REPONAME:latest
+      - test_patterns:
           requires:
             - codacy/checkout_and_version
       - codacy_plugins_test/run:
