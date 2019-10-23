@@ -4,13 +4,12 @@ import java.io.{File, IOException, PrintWriter}
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
-import scala.xml._
 import scala.io.Source
-import ujson._
-
-import sys.process._
-
+import scala.sys.process._
 import scala.util.Using
+import scala.xml._
+
+import ujson._
 
 object Main {
   private val deleteRecursivelyVisitor = new SimpleFileVisitor[Path] {
@@ -56,12 +55,9 @@ object Main {
 
   val htmlString = {
     val minorVersion = version.split('.').dropRight(1).mkString(".")
-    val source = Source.fromURL(
+    val url =
       s"http://pylint.pycqa.org/en/$minorVersion/technical_reference/features.html"
-    )
-    val res = source.mkString
-    source.close()
-    res
+    Using.resource(Source.fromURL(url))(_.mkString)
   }
 
   val html = XML.loadString(htmlString)
@@ -134,9 +130,9 @@ object Main {
   }), indent = 2)
 
   def writeToFile(file: String, content: String): Unit = {
-    val patternsPW = new PrintWriter(new File(file))
-    patternsPW.println(content)
-    patternsPW.close()
+    Using.resource(new PrintWriter(new File(file))) { patternsPW =>
+      patternsPW.println(content)
+    }
   }
 
   def main(args: Array[String]): Unit = {
@@ -144,9 +140,9 @@ object Main {
     writeToFile(s"$docsPath/description/description.json", description)
     files.foreach {
       case (filename, content) =>
-        val pw = new PrintWriter(new File(filename))
-        pw.println(content.trim())
-        pw.close()
+        Using.resource(new PrintWriter(new File(filename)))(
+          _.println(content.trim())
+        )
     }
   }
 }
