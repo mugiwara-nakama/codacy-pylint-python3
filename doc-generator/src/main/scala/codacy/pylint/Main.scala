@@ -4,20 +4,27 @@ import java.io.{File, IOException, PrintWriter}
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
-import scala.xml._
 import scala.io.Source
-import ujson._
+import scala.sys.process._
+import scala.util.Using
+import scala.xml._
 
-import sys.process._
+import ujson._
 
 object Main {
   private val deleteRecursivelyVisitor = new SimpleFileVisitor[Path] {
-    override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+    override def visitFile(
+        file: Path,
+        attrs: BasicFileAttributes
+    ): FileVisitResult = {
       Files.delete(file)
       FileVisitResult.CONTINUE
     }
 
-    override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
+    override def postVisitDirectory(
+        dir: Path,
+        exc: IOException
+    ): FileVisitResult = {
       Files.delete(dir)
       FileVisitResult.CONTINUE
     }
@@ -39,19 +46,18 @@ object Main {
   }
 
   val version: String = {
-    val source = Source.fromFile("../docs/patterns.json")
-    val patterns = source.mkString
-    val json = ujson.read(patterns)
-    val res = json("version").str
-    source.close()
-    res
+    Using.resource(Source.fromFile("../docs/patterns.json")) { source =>
+      val patterns = source.mkString
+      val json = ujson.read(patterns)
+      json("version").str
+    }
   }
 
   val htmlString = {
-    val source = Source.fromURL(s"https://pylint.readthedocs.io/en/pylint-$version/technical_reference/features.html")
-    val res = source.mkString
-    source.close()
-    res
+    val minorVersion = version.split('.').dropRight(1).mkString(".")
+    val url =
+      s"http://pylint.pycqa.org/en/$minorVersion/technical_reference/features.html"
+    Using.resource(Source.fromURL(url))(_.mkString)
   }
 
   val html = XML.loadString(htmlString)
@@ -96,18 +102,23 @@ object Main {
       "version" -> version,
       "patterns" -> Arr.from(rulesNamesTitlesBodies.map {
         case (ruleName, _, _) =>
-          Obj("patternId" -> ruleName, "level" -> {
-            ruleName.headOption
-              .map {
-                case 'C' => "Info" // "Convention" non valid
-                case 'R' => "Info" // "Refactor" non valid
-                case 'W' | 'I' => "Warning"
-                case 'E' => "Error"
-                case 'F' => "Error" // "Fatal" non valid
-                case _ => throw new Exception(s"Unknown error type for $ruleName")
-              }
-              .getOrElse(throw new Exception(s"Empty rule name"))
-          }, "category" -> "CodeStyle")
+          Obj(
+            "patternId" -> ruleName,
+            "level" -> {
+              ruleName.headOption
+                .map {
+                  case 'C'       => "Info" // "Convention" non valid
+                  case 'R'       => "Info" // "Refactor" non valid
+                  case 'W' | 'I' => "Warning"
+                  case 'E'       => "Error"
+                  case 'F'       => "Error" // "Fatal" non valid
+                  case _ =>
+                    throw new Exception(s"Unknown error type for $ruleName")
+                }
+                .getOrElse(throw new Exception(s"Empty rule name"))
+            },
+            "category" -> "CodeStyle"
+          )
       })
     ),
     indent = 2
@@ -119,9 +130,9 @@ object Main {
   }), indent = 2)
 
   def writeToFile(file: String, content: String): Unit = {
-    val patternsPW = new PrintWriter(new File(file))
-    patternsPW.println(content)
-    patternsPW.close()
+    Using.resource(new PrintWriter(new File(file))) { patternsPW =>
+      patternsPW.println(content)
+    }
   }
 
   def main(args: Array[String]): Unit = {
@@ -129,9 +140,9 @@ object Main {
     writeToFile(s"$docsPath/description/description.json", description)
     files.foreach {
       case (filename, content) =>
-        val pw = new PrintWriter(new File(filename))
-        pw.println(content.trim())
-        pw.close()
+        Using.resource(new PrintWriter(new File(filename)))(
+          _.println(content.trim())
+        )
     }
   }
 }

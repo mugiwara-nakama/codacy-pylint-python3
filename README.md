@@ -24,12 +24,11 @@ The docker is ran with the following command:
 ## Generate Docs
 
  1. Update the version in `docs/patterns.json`
-
  2. Run the DocGenerator:
 
-    ```bash
-    sbt "doc-generator/run"
-    ```
+```bash
+sbt "doc-generator/run"
+```
 
 ## Test
 
@@ -40,13 +39,13 @@ You can follow the instructions there to make sure your tool is working as expec
 
 [Codacy](https://www.codacy.com/) is an Automated Code Review Tool that monitors your technical debt, helps you improve your code quality, teaches best practices to your developers, and helps you save time in Code Reviews.
 
-### Among Codacy’s features:
+### Among Codacy’s features
 
- - Identify new Static Analysis issues
- - Commit and Pull Request Analysis with GitHub, BitBucket/Stash, GitLab (and also direct git repositories)
- - Auto-comments on Commits and Pull Requests
- - Integrations with Slack, HipChat, Jira, YouTrack
- - Track issues in Code Style, Security, Error Proneness, Performance, Unused Code and other categories
+- Identify new Static Analysis issues
+- Commit and Pull Request Analysis with GitHub, BitBucket/Stash, GitLab (and also direct git repositories)
+- Auto-comments on Commits and Pull Requests
+- Integrations with Slack, HipChat, Jira, YouTrack
+- Track issues in Code Style, Security, Error Proneness, Performance, Unused Code and other categories
 
 Codacy also helps keep track of Code Coverage, Code Duplication, and Code Complexity.
 

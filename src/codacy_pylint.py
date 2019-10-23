@@ -4,7 +4,6 @@ import json
 import jsonpickle
 from subprocess import Popen, PIPE
 import ast
-from itertools import takewhile, dropwhile
 import glob
 import re
 import signal
@@ -110,7 +109,7 @@ def readConfiguration(configFile, srcDir):
             rules = ['--disable=all', '--enable=' + ','.join([p['patternId'] for p in pylint.get('patterns') or []])]
         else:
             rules = []
-    except:
+    except Exception:
         rules = []
         files = allFiles()
     return rules, [f for f in files if isPython3(f)]
