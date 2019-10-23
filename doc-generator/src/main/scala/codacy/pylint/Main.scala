@@ -14,12 +14,18 @@ import scala.util.Using
 
 object Main {
   private val deleteRecursivelyVisitor = new SimpleFileVisitor[Path] {
-    override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+    override def visitFile(
+        file: Path,
+        attrs: BasicFileAttributes
+    ): FileVisitResult = {
       Files.delete(file)
       FileVisitResult.CONTINUE
     }
 
-    override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
+    override def postVisitDirectory(
+        dir: Path,
+        exc: IOException
+    ): FileVisitResult = {
       Files.delete(dir)
       FileVisitResult.CONTINUE
     }
@@ -50,7 +56,9 @@ object Main {
 
   val htmlString = {
     val minorVersion = version.split('.').dropRight(1).mkString(".")
-    val source = Source.fromURL(s"http://pylint.pycqa.org/en/$minorVersion/technical_reference/features.html")
+    val source = Source.fromURL(
+      s"http://pylint.pycqa.org/en/$minorVersion/technical_reference/features.html"
+    )
     val res = source.mkString
     source.close()
     res
@@ -98,18 +106,23 @@ object Main {
       "version" -> version,
       "patterns" -> Arr.from(rulesNamesTitlesBodies.map {
         case (ruleName, _, _) =>
-          Obj("patternId" -> ruleName, "level" -> {
-            ruleName.headOption
-              .map {
-                case 'C' => "Info" // "Convention" non valid
-                case 'R' => "Info" // "Refactor" non valid
-                case 'W' | 'I' => "Warning"
-                case 'E' => "Error"
-                case 'F' => "Error" // "Fatal" non valid
-                case _ => throw new Exception(s"Unknown error type for $ruleName")
-              }
-              .getOrElse(throw new Exception(s"Empty rule name"))
-          }, "category" -> "CodeStyle")
+          Obj(
+            "patternId" -> ruleName,
+            "level" -> {
+              ruleName.headOption
+                .map {
+                  case 'C'       => "Info" // "Convention" non valid
+                  case 'R'       => "Info" // "Refactor" non valid
+                  case 'W' | 'I' => "Warning"
+                  case 'E'       => "Error"
+                  case 'F'       => "Error" // "Fatal" non valid
+                  case _ =>
+                    throw new Exception(s"Unknown error type for $ruleName")
+                }
+                .getOrElse(throw new Exception(s"Empty rule name"))
+            },
+            "category" -> "CodeStyle"
+          )
       })
     ),
     indent = 2
