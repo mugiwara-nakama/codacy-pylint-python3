@@ -10,6 +10,8 @@ import ujson._
 
 import sys.process._
 
+import scala.util.Using
+
 object Main {
   private val deleteRecursivelyVisitor = new SimpleFileVisitor[Path] {
     override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
@@ -39,16 +41,16 @@ object Main {
   }
 
   val version: String = {
-    val source = Source.fromFile("../docs/patterns.json")
-    val patterns = source.mkString
-    val json = ujson.read(patterns)
-    val res = json("version").str
-    source.close()
-    res
+    Using.resource(Source.fromFile("../docs/patterns.json")) { source =>
+      val patterns = source.mkString
+      val json = ujson.read(patterns)
+      json("version").str
+    }
   }
 
   val htmlString = {
-    val source = Source.fromURL(s"https://pylint.readthedocs.io/en/pylint-$version/technical_reference/features.html")
+    val minorVersion = version.split('.').dropRight(1).mkString(".")
+    val source = Source.fromURL(s"http://pylint.pycqa.org/en/$minorVersion/technical_reference/features.html")
     val res = source.mkString
     source.close()
     res
