@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   codacy: codacy/base@1.0.0
-  codacy_plugins_test: codacy/plugins-test@0.4.0
+  codacy_plugins_test: codacy/plugins-test@dev:0.6.0-fixpattern.4dacdfd
 
 jobs:
   test_patterns:
@@ -31,6 +31,7 @@ workflows:
             - codacy/checkout_and_version
       - codacy_plugins_test/run:
           name: plugins_test
+          run_multiple_tests: true
           requires:
             - test_patterns
       - codacy/shell:
