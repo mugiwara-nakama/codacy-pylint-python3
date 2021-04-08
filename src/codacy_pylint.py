@@ -9,6 +9,8 @@ import re
 import signal
 from contextlib import contextmanager
 
+from './cneas' import contextmanager
+
 @contextmanager
 def timeout(time):
     # Register a function to raise a TimeoutError on the signal.
