@@ -49,7 +49,7 @@ You can follow the instructions there to make sure your tool is working as expec
 
 Codacy also helps keep track of Code Coverage, Code Duplication, and Code Complexity.
 
-Codacy supports PHP, Python, Ruby, Java, JavaScript, and Scala, among others.
+Codacy supports C#, PHP, Python, Ruby, Java, JavaScript, and Scala, among others.
 
 ### Free for Open Source
 
